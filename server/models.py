@@ -44,6 +44,7 @@ class Property(db.Model):
     description = db.Column(db.Text)
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
     images = db.Column(ARRAY(Text))
+    ownership_status = db.Column(db.String(20), default='Pending')
     # Relationship — one property has many interactions
     interactions = db.relationship('Interaction', backref='property', lazy=True)
 
@@ -59,6 +60,7 @@ class Property(db.Model):
             'longitude':   float(self.longitude) if self.longitude else None,
             'description': self.description,
             'images': self.images or [],
+            'ownership_status': self.ownership_status or 'Pending',
             'created_at':  str(self.created_at)
         }
 

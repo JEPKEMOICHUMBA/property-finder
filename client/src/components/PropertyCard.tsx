@@ -12,6 +12,7 @@ interface Property {
   latitude: number
   longitude: number
   images: string[]
+  ownership_status?: string
 }
 
 export default function PropertyCard({ property }: { property: Property }) {
@@ -23,6 +24,14 @@ export default function PropertyCard({ property }: { property: Property }) {
     }).format(price)
 
     const router = useRouter()
+
+    const ownershipConfig = (status?: string) => {
+  switch(status) {
+    case 'Verified':  return { color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0', icon: '✅' }
+    case 'Disputed':  return { color: '#dc2626', bg: '#fef2f2', border: '#fecaca', icon: '⚠️' }
+    default:          return { color: '#d97706', bg: '#fffbeb', border: '#fde68a', icon: '🕐' }
+  }
+}
   return (
     <div style={{
       background: '#ffffff',
@@ -141,6 +150,28 @@ export default function PropertyCard({ property }: { property: Property }) {
         }}>
            {property.location}
         </p>
+
+        {/* Ownership Status Badge */}
+{(() => {
+  const cfg = ownershipConfig(property.ownership_status)
+  return (
+    <div style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '5px',
+      background: cfg.bg,
+      color: cfg.color,
+      border: `1px solid ${cfg.border}`,
+      padding: '4px 10px',
+      borderRadius: '20px',
+      fontSize: '11px',
+      fontWeight: '600',
+      marginBottom: '12px'
+    }}>
+      {cfg.icon} {property.ownership_status || 'Pending'} Ownership
+    </div>
+  )
+})()}
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '8px' }}>

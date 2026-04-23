@@ -152,6 +152,7 @@ export default function Header() {
         }}
           className="mobile-menu"
         >
+          
           <button
   onClick={() => window.location.href = '/help'}
   style={{
@@ -165,6 +166,36 @@ export default function Header() {
   }}
 >
   Help
+</button>
+
+<button
+  onClick={() => window.location.href = '/reports'}
+  style={{
+    background: 'transparent',
+    border: 'none',
+    color: 'rgba(255,255,255,0.8)',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '500',
+    padding: '8px 8px'
+  }}
+>
+  Reports
+</button>
+
+<button
+  onClick={() => window.location.href = '/market-trends'}
+  style={{
+    background: 'transparent',
+    border: 'none',
+    color: 'rgba(255,255,255,0.8)',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '500',
+    padding: '8px 8px'
+  }}
+>
+  Market Trends
 </button>
           <button
             onClick={() => { window.location.href = '/signup'; setMenuOpen(false) }}

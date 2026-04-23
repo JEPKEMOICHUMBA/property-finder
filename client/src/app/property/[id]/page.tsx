@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Image from 'next/image'
 import MapWrapper from '@/components/map/MapWrapper'
 import ImageUpload from '@/components/ImageUpload'
 import SimilarProperties from '@/components/SimilarProperties'
@@ -17,6 +16,7 @@ interface Property {
   latitude: number
   longitude: number
   description: string
+  ownership_status?: string
 }
 
 interface PredictionResult {
@@ -42,6 +42,7 @@ export default function PropertyDetails() {
   const [images, setImages] = useState<string[]>([])
   const [currentImage, setCurrentImage] = useState(0)
   const [showUpload, setShowUpload] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0 }).format(price)
 
@@ -52,6 +53,16 @@ useEffect(() => {
       setProperty(data)
       setImages(data.images || [])
       setLoading(false)
+      // Get user role
+try {
+  const stored = localStorage.getItem('user')
+  if (stored) {
+    const u = JSON.parse(stored)
+    setUserRole(u.role)
+  }
+} catch {
+  // not logged in
+}
 
       // Log interaction if user is logged in
       const stored = localStorage.getItem('user')
@@ -130,13 +141,11 @@ useEffect(() => {
   }}>
     {images.length > 0 ? (
       <>
-        <Image
-          src={`http://127.0.0.1:5000${images[currentImage]}`}
-          alt="Property"
-          fill
-          style={{ objectFit: 'cover' }}
-          unoptimized
-        />
+        <img
+  src={`http://127.0.0.1:5000${images[currentImage]}`}
+  alt="Property"
+  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+/>
         {/* Navigation arrows */}
         {images.length > 1 && (
           <>
@@ -168,58 +177,61 @@ useEffect(() => {
   {images.length > 1 && (
     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
       {images.map((img, i) => (
-        <Image
-          key={i}
-          src={`http://127.0.0.1:5000${img}`}
-          alt={`Thumbnail ${i + 1}`}
-          width={72}
-          height={52}
-          onClick={() => setCurrentImage(i)}
-          unoptimized
-          style={{
-            objectFit: 'cover',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            border: currentImage === i ? '2px solid #052112' : '2px solid transparent',
-            flexShrink: 0
-          }}
-        />
+        <img
+  key={i}
+  src={`http://127.0.0.1:5000${img}`}
+  alt={`Thumbnail ${i + 1}`}
+  onClick={() => setCurrentImage(i)}
+  style={{
+    width: '72px',
+    height: '52px',
+    objectFit: 'cover',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    border: currentImage === i ? '2px solid #052112' : '2px solid transparent',
+    flexShrink: 0,
+    display: 'block'
+  }}
+/>
       ))}
     </div>
   )}
 
-  {/* Upload toggle button */}
-  <button
-    onClick={() => setShowUpload(!showUpload)}
-    style={{
-      marginTop: '12px',
-      background: 'transparent',
-      color: '#052112',
-      border: '1.5px solid #052112',
-      padding: '8px 16px',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '13px',
-      fontWeight: '500'
-    }}
-  >
-    {showUpload ? '✕ Close Upload' : ' Add Photos'}
-  </button>
+ {/* Only agents and admins can upload photos */}
+{(userRole === 'agent' || userRole === 'admin') && (
+  <>
+    <button
+      onClick={() => setShowUpload(!showUpload)}
+      style={{
+        marginTop: '12px',
+        background: 'transparent',
+        color: '#052112',
+        border: '1.5px solid #052112',
+        padding: '8px 16px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '13px',
+        fontWeight: '500'
+      }}
+    >
+      {showUpload ? '✕ Close Upload' : ' Add Photos'}
+    </button>
 
-  {/* Upload panel */}
-  {showUpload && (
-    <div style={{ marginTop: '16px', background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '20px' }}>
-      <h3 style={{ fontWeight: '600', marginBottom: '16px', color: '#111827' }}>Upload Property Photos</h3>
-      <ImageUpload
-        propertyId={property.property_id}
-        existingImages={images}
-        onUpdate={(newImages) => {
-          setImages(newImages)
-          setShowUpload(false)
-        }}
-      />
-    </div>
-  )}
+    {showUpload && (
+      <div style={{ marginTop: '16px', background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '20px' }}>
+        <h3 style={{ fontWeight: '600', marginBottom: '16px', color: '#111827' }}>Upload Property Photos</h3>
+        <ImageUpload
+          propertyId={property.property_id}
+          existingImages={images}
+          onUpdate={(newImages) => {
+            setImages(newImages)
+            setShowUpload(false)
+          }}
+        />
+      </div>
+    )}
+  </>
+)}
 </div>
 
             {/* Title */}
@@ -326,12 +338,67 @@ useEffect(() => {
 <SimilarProperties propertyId={property.property_id} />
             </div>
 
-            {/* Property Info */}
-            <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px', fontSize: '13px', color: '#6b7280' }}>
-              <div style={{ marginBottom: '8px' }}><strong style={{ color: '#374151' }}>Property ID:</strong> #{property.property_id}</div>
-              <div style={{ marginBottom: '8px' }}><strong style={{ color: '#374151' }}>Coordinates:</strong> {property.latitude}, {property.longitude}</div>
-              <div><strong style={{ color: '#374151' }}>Type:</strong> {property.bedrooms === 0 ? 'Land' : 'Residential'}</div>
-            </div>
+           {/* Property Info */}
+<div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px', fontSize: '13px', color: '#6b7280' }}>
+  <div style={{ marginBottom: '8px' }}>
+    <strong style={{ color: '#374151' }}>Property ID:</strong> #{property.property_id}
+  </div>
+  <div style={{ marginBottom: '8px' }}>
+    <strong style={{ color: '#374151' }}>Coordinates:</strong> {property.latitude}, {property.longitude}
+  </div>
+  <div style={{ marginBottom: '8px' }}>
+    <strong style={{ color: '#374151' }}>Type:</strong> {property.bedrooms === 0 ? 'Land' : 'Residential'}
+  </div>
+
+  {/* Ownership Status */}
+  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f3f4f6' }}>
+    <strong style={{ color: '#374151', display: 'block', marginBottom: '8px' }}>
+      Ownership Status
+    </strong>
+   {(() => {
+  const status = property.ownership_status ?? 'Pending'
+  const configMap: Record<string, { color: string; bg: string; border: string; icon: string; msg: string }> = {
+    'Verified': { color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0', icon: '', msg: 'Title deed verified. This property has confirmed ownership.' },
+    'Disputed': { color: '#dc2626', bg: '#fef2f2', border: '#fecaca', icon: '', msg: 'Ownership dispute recorded. Proceed with caution.' },
+    'Pending':  { color: '#d97706', bg: '#fffbeb', border: '#fde68a', icon: '', msg: 'Ownership verification is in progress.' }
+  }
+  const config = configMap[status] || { color: '#d97706', bg: '#fffbeb', border: '#fde68a', icon: '', msg: 'Ownership verification is in progress.' }
+
+      return (
+        <div style={{
+          background: config.bg,
+          border: `1px solid ${config.border}`,
+          borderRadius: '8px',
+          padding: '12px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            marginBottom: '6px'
+          }}>
+            <span style={{ fontSize: '16px' }}>{config.icon}</span>
+            <span style={{
+              fontWeight: '700',
+              color: config.color,
+              fontSize: '13px'
+            }}>
+              {status || 'Pending'}
+            </span>
+          </div>
+          <p style={{
+            fontSize: '12px',
+            color: config.color,
+            lineHeight: '1.5',
+            margin: 0
+          }}>
+            {config.msg}
+          </p>
+        </div>
+      )
+    })()}
+  </div>
+</div>
           </div>
         </div>
       </div>

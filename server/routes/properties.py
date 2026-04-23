@@ -1,26 +1,55 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, make_response
 from models import db, Property
 import base64
 import os
+import time
 import uuid
+from werkzeug.utils import secure_filename
+
+
 from models import db, Property, Interaction
 
 properties_bp = Blueprint('properties', __name__)
-
+@properties_bp.route('/api/properties/<int:id>/images', methods=['OPTIONS'])
+def upload_images_options(id):
+    response = make_response()
+    response.headers['Access-Control-Allow-Origin']  = 'http://localhost:3000'
+    response.headers['Access-Control-Allow-Methods'] = 'POST, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept'
+    return response, 200
 # GET all properties
 @properties_bp.route('/api/properties', methods=['GET'])
 def get_properties():
     properties = Property.query.all()
     return jsonify([p.to_dict() for p in properties])
 
+# PUT — update ownership status (admin only)
+@properties_bp.route('/api/properties/<int:id>/ownership', methods=['PUT'])
+def update_ownership(id):
+    prop   = Property.query.get_or_404(id)
+    data   = request.get_json()
+    status = data.get('ownership_status')
+
+    if status not in ['Verified', 'Pending', 'Disputed']:
+        return jsonify({'error': 'Status must be Verified, Pending or Disputed'}), 400
+
+    prop.ownership_status = status
+    db.session.commit()
+    return jsonify({
+        'message':          'Ownership status updated',
+        'property_id':      prop.property_id,
+        'ownership_status': prop.ownership_status
+    })
+
 # GET properties with filters
 @properties_bp.route('/api/properties/search', methods=['GET'])
 def search_properties():
-    location = request.args.get('location', '')
-    min_price = request.args.get('min_price', type=float)
-    max_price = request.args.get('max_price', type=float)
-    bedrooms  = request.args.get('bedrooms', type=int)
-    prop_type = request.args.get('type', '')
+    location         = request.args.get('location', '')
+    min_price        = request.args.get('min_price', type=float)
+    max_price        = request.args.get('max_price', type=float)
+    bedrooms         = request.args.get('bedrooms', type=int)
+    prop_type        = request.args.get('type', '')
+    ownership_status = request.args.get('ownership_status', '')
 
     query = Property.query
 
@@ -42,6 +71,8 @@ def search_properties():
         query = query.filter(Property.bedrooms == 0)
     elif prop_type == 'house':
         query = query.filter(Property.bedrooms > 0)
+    if ownership_status:
+        query = query.filter(Property.ownership_status == ownership_status)
 
     properties = query.order_by(Property.price.asc()).all()
     return jsonify([p.to_dict() for p in properties])
@@ -69,6 +100,7 @@ def get_map_properties():
 def get_property(id):
     prop = Property.query.get_or_404(id)
     return jsonify(prop.to_dict())
+
 
 # GET — fetch user interaction history
 @properties_bp.route('/api/interactions/user/<int:user_id>', methods=['GET'])
@@ -103,44 +135,7 @@ def create_property():
     return jsonify(new_property.to_dict()), 201
 
 # POST — upload images for a property
-@properties_bp.route('/api/properties/<int:id>/images', methods=['POST'])
-def upload_images(id):
-    prop = Property.query.get_or_404(id)
-    data = request.get_json()
 
-    images_b64 = data.get('images', [])
-    if not images_b64:
-        return jsonify({'error': 'No images provided'}), 400
-
-    upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads')
-    os.makedirs(upload_dir, exist_ok=True)
-
-    saved_urls = list(prop.images or [])
-
-    for img_data in images_b64:
-        try:
-            # Strip data URL prefix
-            if ',' in img_data:
-                img_data = img_data.split(',')[1]
-
-            img_bytes  = base64.b64decode(img_data)
-            filename   = f"{uuid.uuid4().hex}.jpg"
-            filepath   = os.path.join(upload_dir, filename)
-
-            with open(filepath, 'wb') as f:
-                f.write(img_bytes)
-
-            saved_urls.append(f"/static/uploads/{filename}")
-        except Exception as e:
-            return jsonify({'error': f'Image processing failed: {str(e)}'}), 400
-
-    prop.images = saved_urls
-    db.session.commit()
-
-    return jsonify({
-        'message': f'{len(images_b64)} image(s) uploaded successfully',
-        'images':  prop.images
-    }), 200
     
     # POST — log a user interaction
 @properties_bp.route('/api/interactions', methods=['POST'])
