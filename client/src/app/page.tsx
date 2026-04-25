@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import MapWrapper from '@/components/map/MapWrapper'
 import PropertyCard from '@/components/PropertyCard'
 interface Property {
@@ -25,6 +26,7 @@ const LOCATIONS = [
 ]
 
 export default function Home() {
+  const router = useRouter()
   const [properties, setProperties]                   = useState<Property[]>([])
   const [loading, setLoading]                         = useState(true)
   const [error, setError]                             = useState('')
@@ -46,6 +48,7 @@ export default function Home() {
   const [ownershipFilter, setOwnershipFilter] = useState('')
   const [hasSearched, setHasSearched]         = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const [userRole, setUserRole] = useState<string | null>(null)
   const fetchProperties = async (params?: {
   location?: string
   min_price?: string
@@ -79,12 +82,16 @@ export default function Home() {
 }
 
   useEffect(() => {
-  setLoading(false)
-  const stored = localStorage.getItem('recentSearches')
-  if (stored) {
-    setRecentSearches(JSON.parse(stored))
-  }
-}, [])
+    const stored = localStorage.getItem('user')
+    if (stored) {
+      try {
+        const user = JSON.parse(stored)
+        setUserRole(user.role || null)
+      } catch {
+        setUserRole(null)
+      }
+    }
+  }, [])
 
   const handleSearch = () => {
     //save to recent searches
@@ -317,14 +324,26 @@ export default function Home() {
         </div>
 
         
-        {/* AI Recommendations */}
+          {/* AI Recommendations */}
         {!showRecommendations ? (
-          <button
-            onClick={() => setShowRecommendations(true)}
-            style={{ background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#ffffff', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-          >
-             Get personalized Recommendations
-          </button>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setShowRecommendations(true)}
+              style={{ background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#ffffff', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+            >
+               Get personalized Recommendations
+            </button>
+
+            {/* Add Property Button - Only for Agents */}
+            {userRole === 'agent' && (
+              <button
+                onClick={() => router.push('/agent/add-property')}
+                style={{ background: '#ffffff', color: '#052112', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                 Add Property
+              </button>
+            )}
+          </div>
         ) : (
           <div style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '20px', maxWidth: '700px', margin: '0 auto' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '14px' }}> AI Property Recommendations</h3>
@@ -409,7 +428,7 @@ export default function Home() {
               <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '6px' }}>{property.title}</h4>
               <p style={{ fontSize: '16px', fontWeight: '700', color: '#052112', marginBottom: '8px' }}>{formatPrice(property.price)}</p>
               <div style={{ display: 'flex', gap: '10px', fontSize: '12px', color: '#6b7280' }}>
-                {property.bedrooms > 0 && <span>🛏 {property.bedrooms} beds</span>}
+                {property.bedrooms > 0 && <span> {property.bedrooms} beds</span>}
                 <span>{property.location}</span>
               </div>
             </div>
@@ -489,19 +508,6 @@ export default function Home() {
               <MapWrapper properties={sorted.filter(p => p.latitude && p.longitude)} />
             </div>
           )}
-          {ownershipFilter && (
-  <span style={{
-    background: '#f0fdf4',
-    color: '#052112',
-    border: '1px solid #bbf7d0',
-    padding: '4px 12px',
-    borderRadius: '20px',
-    fontSize: '12px',
-    fontWeight: '500'
-  }}>
-    {ownershipFilter === 'Verified' ? '' : ownershipFilter === 'Disputed' ? '' : ''} {ownershipFilter} Ownership
-  </span>
-)}
 
           {/* Grid */}
           {!showMap && (
@@ -514,7 +520,7 @@ export default function Home() {
         padding: '60px 20px',
         color: '#6b7280'
       }}>
-        <div style={{ fontSize: '56px', marginBottom: '16px' }}>🔍</div>
+        <div style={{ fontSize: '56px', marginBottom: '16px' }}></div>
         <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', marginBottom: '8px' }}>
           Search for Properties
         </h3>
@@ -598,7 +604,7 @@ export default function Home() {
 
   {recentSearches.length === 0 ? (
     <div style={{ textAlign: 'center', padding: '16px 0', color: '#9ca3af', fontSize: '13px' }}>
-      <div style={{ fontSize: '24px', marginBottom: '6px' }}>🔍</div>
+      <div style={{ fontSize: '24px', marginBottom: '6px' }}></div>
 Your searches will appear here
     </div>
   ) : (

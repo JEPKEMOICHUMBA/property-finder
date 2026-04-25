@@ -48,7 +48,7 @@ export default function RootLayout({
             <div>
               <h4 style={{ fontWeight: '600', marginBottom: '12px', fontSize: '14px' }}>About</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-               {['About Us', 'Our Team', 'Market Trends', 'Blog'].map(item => (
+               {['About Us', 'Market Trends'].map(item => (
   <li key={item}>
     <a href={item === 'Market Trends' ? '/market-trends' : '#'} style={{ color: 'rgba(255,255,255,0.7)', 
       textDecoration: 'none', fontSize: '13px' }}>
@@ -74,10 +74,10 @@ export default function RootLayout({
             <div>
               <h4 style={{ fontWeight: '600', marginBottom: '12px', fontSize: '14px' }}>Address</h4>
               <p style={{ fontSize: '13px', opacity: 0.7, lineHeight: '1.7' }}>
-                Westlands Business Park<br />
+                Karen<br />
                 Nairobi, Kenya<br />
-                 +254 700 000 000<br />
-                 info@propertyfinder.co.ke
+                 +254 710 000 001<br />
+                 info@yourcityhome.co.ke
               </p>
             </div>
           </div>

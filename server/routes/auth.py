@@ -50,3 +50,34 @@ def login():
         'message': 'Login successful',
         'user': user.to_dict()
     }), 200
+    # FORGOT PASSWORD
+@auth_bp.route('/api/forgot-password', methods=['POST'])
+def forgot_password():
+    data  = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        # Don't reveal if email exists or not — security best practice
+        return jsonify({'message': 'If that email exists, a reset link has been sent.'}), 200
+
+    # Generate a simple reset token (hash of email + timestamp)
+    import hashlib, time
+    token = hashlib.sha256(f"{email}{time.time()}".encode()).hexdigest()[:20]
+
+    # In a real system you would email this token
+    # For now we store it and show it (demo purposes)
+    user.password = hashlib.sha256(token.encode()).hexdigest()
+    db.session.commit()
+
+    print(f"[RESET TOKEN for {email}]: {token}")
+
+    return jsonify({
+        'message': 'Password reset successful.',
+        'temp_password': token,
+        'note': 'Use this temporary password to sign in, then change it in your account settings.'
+    }), 200

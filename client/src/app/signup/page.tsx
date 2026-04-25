@@ -101,7 +101,7 @@ export default function SignUp() {
             Create Account
           </h1>
           <p style={{ fontSize: '14px', color: '#6b7280' }}>
-            Join Property Finder today
+            Join YourCityHome today
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export default function SignUp() {
             type="text"
             value={username}
             onChange={e => setUsername(e.target.value)}
-            placeholder="John Doe"
+            
             style={inputStyle}
             onFocus={e => e.target.style.borderColor = '#052112'}
             onBlur={e => e.target.style.borderColor = '#e5e7eb'}
@@ -156,7 +156,7 @@ export default function SignUp() {
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="john@email.com"
+            placeholder="name@gmail.com"
             style={inputStyle}
             onFocus={e => e.target.style.borderColor = '#052112'}
             onBlur={e => e.target.style.borderColor = '#e5e7eb'}

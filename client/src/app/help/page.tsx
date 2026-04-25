@@ -460,7 +460,7 @@ export default function HelpPage() {
               fontSize: '14px',
               fontWeight: '500'
             }}>
-              +254 700 000 000
+              +254 700 000 001
             </button>
           </div>
         </div>
