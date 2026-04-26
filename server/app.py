@@ -6,15 +6,27 @@ from routes.properties import properties_bp
 from routes.users import users_bp
 from routes.auth import auth_bp
 from routes.ml import ml_bp
+from extensions import mail
 import os
 
 def create_app():
-    app = Flask(__name__, static_folder='uploads', static_url_path='/uploads')
-    CORS(app)
-    os.makedirs('uploads', exist_ok=True)
+    app = Flask(__name__,
+        static_folder=os.path.join(os.path.dirname(__file__), 'static'),
+        static_url_path='/static'
+    )
 
     app.config.from_object(Config)
+
+    # Mail config
+    app.config['MAIL_SERVER']         = 'smtp.gmail.com'
+    app.config['MAIL_PORT']           = 587
+    app.config['MAIL_USE_TLS']        = True
+    app.config['MAIL_USERNAME']       = 'your-email@gmail.com'
+    app.config['MAIL_PASSWORD']       = 'your-app-password'
+    app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
+
     db.init_app(app)
+    mail.init_app(app)
 
     CORS(app,
         origins='*',
@@ -22,7 +34,6 @@ def create_app():
         allow_headers='*',
         supports_credentials=False
     )
-    
 
     app.register_blueprint(properties_bp)
     app.register_blueprint(users_bp)

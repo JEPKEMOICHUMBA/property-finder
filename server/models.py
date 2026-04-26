@@ -15,6 +15,8 @@ class User(db.Model):
     phone      = db.Column(db.String(20))
     bio        = db.Column(db.Text)
     avatar     = db.Column(db.Text)
+    reset_token = db.Column(db.String(255), nullable=True)
+    token_expiry = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     interactions = db.relationship('Interaction', backref='user', lazy=True)

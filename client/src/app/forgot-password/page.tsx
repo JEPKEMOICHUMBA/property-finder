@@ -77,7 +77,7 @@ export default function ForgotPassword() {
             Forgot Password
           </h1>
           <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.5' }}>
-            Enter your registered email and we'll generate a temporary password for you.
+            Enter your registered email and we will generate a temporary password for you.
           </p>
         </div>
 

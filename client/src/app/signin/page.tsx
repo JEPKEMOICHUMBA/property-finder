@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function SignIn() {
   const router = useRouter()
@@ -148,13 +149,17 @@ export default function SignIn() {
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
           />
           <div style={{ textAlign: 'right', marginTop: '6px' }}>
-           <a
+
+           <Link
   href="/forgot-password"
-  style={{ fontSize: '13px', color: '#052112', textDecoration: 'none' }}
+  style={{
+    fontSize: '13px',
+    color: '#052112',
+    textDecoration: 'none'
+  }}
 >
   Forgot password?
-
-</a>
+</Link>
           </div>
         </div>
 
