@@ -139,28 +139,26 @@ export default function SignUp() {
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>Full Name</label>
           <input
-            type="text"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            
-            style={inputStyle}
-            onFocus={e => e.target.style.borderColor = '#052112'}
-            onBlur={e => e.target.style.borderColor = '#e5e7eb'}
-          />
+  type="text"
+  value={username}
+  onChange={e => setUsername(e.target.value)}
+  placeholder="Your Name"
+  autoComplete="name"
+  style={inputStyle}
+/>
         </div>
 
         {/* Email */}
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>Email Address</label>
           <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="name@gmail.com"
-            style={inputStyle}
-            onFocus={e => e.target.style.borderColor = '#052112'}
-            onBlur={e => e.target.style.borderColor = '#e5e7eb'}
-          />
+  type="email"
+  value={email}
+  onChange={e => setEmail(e.target.value)}
+  placeholder="name@gmail.com"
+  autoComplete="email"
+  style={inputStyle}
+/>
         </div>
 
         {/* Role */}
@@ -211,15 +209,13 @@ export default function SignUp() {
         <div style={{ marginBottom: '28px' }}>
           <label style={labelStyle}>Confirm Password</label>
           <input
-            type="password"
-            value={confirm}
-            onChange={e => setConfirm(e.target.value)}
-            placeholder="Repeat your password"
-            style={inputStyle}
-            onFocus={e => e.target.style.borderColor = '#052112'}
-            onBlur={e => e.target.style.borderColor = '#e5e7eb'}
-            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-          />
+  type="password"
+  value={confirm}
+  onChange={e => setConfirm(e.target.value)}
+  placeholder="Repeat your password"
+  autoComplete="new-password"
+  style={inputStyle}
+/>
         </div>
 
         {/* Submit */}

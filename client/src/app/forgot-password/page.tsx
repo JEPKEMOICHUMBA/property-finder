@@ -42,7 +42,7 @@ export default function ForgotPassword() {
         setError(data.error || 'Something went wrong')
       } else {
         setMessage(data.message)
-        setTempPass(data.temp_password || '')
+        setTempPass(data.reset_link || data.temp_password || '')
         setDone(true)
       }
     } catch {
@@ -98,62 +98,69 @@ export default function ForgotPassword() {
 
         {/* Success state */}
         {done ? (
-          <div>
-            <div style={{
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              borderRadius: '10px',
-              padding: '20px',
-              marginBottom: '20px',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>✅</div>
-              <p style={{ fontSize: '14px', color: '#16a34a', fontWeight: '600', marginBottom: '6px' }}>
-                {message}
-              </p>
-              {tempPass && (
-                <div style={{ marginTop: '14px' }}>
-                  <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '6px' }}>
-                    Your temporary password:
-                  </p>
-                  <div style={{
-                    background: '#052112',
-                    color: '#ffffff',
-                    padding: '10px 16px',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    fontWeight: '700',
-                    letterSpacing: '1px',
-                    fontFamily: 'monospace'
-                  }}>
-                    {tempPass}
-                  </div>
-                  <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '8px' }}>
-                    Use this to sign in, then change your password in Account Settings.
-                  </p>
-                </div>
-              )}
-            </div>
+  <div>
+    <div style={{
+      background: '#f0fdf4',
+      border: '1px solid #bbf7d0',
+      borderRadius: '10px',
+      padding: '20px',
+      marginBottom: '20px',
+      textAlign: 'center'
+    }}>
+      <div style={{ fontSize: '32px', marginBottom: '8px' }}>✅</div>
+      <p style={{ fontSize: '14px', color: '#16a34a', fontWeight: '600', marginBottom: '6px' }}>
+        {message}
+      </p>
 
-            <button
-              onClick={() => router.push('/signin')}
-              style={{
-                width: '100%',
-                background: '#052112',
-                color: '#ffffff',
-                border: 'none',
-                padding: '13px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '15px',
-                fontWeight: '600',
-                marginBottom: '12px'
-              }}
-            >
-              Go to Sign In →
-            </button>
-          </div>
-        ) : (
+      {/* Show reset link when email is not configured */}
+      {tempPass && (
+        <div style={{ marginTop: '14px', textAlign: 'left' }}>
+          <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
+            Click the link below to reset your password:
+          </p>
+          <a
+            href={tempPass}
+            style={{
+              display: 'block',
+              background: '#052112',
+              color: '#ffffff',
+              padding: '10px 16px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: '600',
+              textDecoration: 'none',
+              textAlign: 'center',
+              marginBottom: '8px'
+            }}
+          >
+             Click Here to Reset Password
+          </a>
+          <p style={{ fontSize: '11px', color: '#9ca3af', textAlign: 'center' }}>
+            This link expires in 1 hour
+          </p>
+        </div>
+      )}
+    </div>
+
+    <button
+      onClick={() => router.push('/signin')}
+      style={{
+        width: '100%',
+        background: '#052112',
+        color: '#ffffff',
+        border: 'none',
+        padding: '13px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '15px',
+        fontWeight: '600',
+        marginBottom: '12px'
+      }}
+    >
+      Go to Sign In →
+    </button>
+  </div>
+) : (
           <div>
             {/* Email input */}
             <div style={{ marginBottom: '20px' }}>

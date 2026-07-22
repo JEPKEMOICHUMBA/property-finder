@@ -166,12 +166,12 @@ def create_property():
         latitude         = data.get('latitude'),
         longitude        = data.get('longitude'),
         description      = data.get('description'),
-        ownership_status = data.get('ownership_status', 'Pending')
+        ownership_status = data.get('ownership_status', 'Pending'),
+        agent_id         = data.get('agent_id')
     )
     db.session.add(new_property)
     db.session.commit()
     return jsonify(new_property.to_dict()), 201
-
 
 # ── POST upload images ────────────────────────────────────────────────────────
 @properties_bp.route('/api/properties/<int:id>/images', methods=['POST'])

@@ -17,7 +17,14 @@ interface Property {
   longitude: number
   description: string
   ownership_status?: string
-  images?: string[]
+  agent_id?: number
+  agent?: {
+    user_id: number
+    username: string
+    email: string
+    phone: string
+    avatar: string
+  }
 }
 
 interface PredictionResult {
@@ -358,24 +365,137 @@ export default function PropertyDetails() {
           {/* Right Sidebar */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-            {/* Contact Agent */}
-            <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '20px' }}>
-              <h3 style={{ fontWeight: '600', marginBottom: '14px', color: '#111827' }}>Contact Agent</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                <div style={{ width: '48px', height: '48px', background: '#052112', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}></div>
-                <div>
-                  <div style={{ fontWeight: '600', color: '#111827' }}>Property Agent</div>
-                  <div style={{ fontSize: '13px', color: '#6b7280' }}>Licensed Agent</div>
-                </div>
-              </div>
-              <button style={{ width: '100%', background: '#052112', color: '#ffffff', border: 'none', padding: '11px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
-                 Call Agent
-              </button>
-              <button style={{ width: '100%', background: 'transparent', color: '#052112', border: '1.5px solid #052112', padding: '11px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
-                 Send Message
-              </button>
+               {/* Contact Agent */}
+<div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '20px' }}>
+  <h3 style={{ fontWeight: '600', marginBottom: '14px', color: '#111827' }}>
+    Contact Agent
+  </h3>
+
+  {property.agent ? (
+    <>
+      {/* Agent info */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+        <div style={{
+          width: '52px',
+          height: '52px',
+          borderRadius: '50%',
+          background: '#052112',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '20px',
+          overflow: 'hidden',
+          flexShrink: 0
+        }}>
+          {property.agent.avatar
+            ? <img src={`http://127.0.0.1:5000${property.agent.avatar}`} alt="Agent" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : ''
+          }
+        </div>
+        <div>
+          <div style={{ fontWeight: '700', color: '#111827', fontSize: '15px' }}>
+            {property.agent.username}
+          </div>
+          <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>
+            Licensed Property Agent
+          </div>
+          {property.agent.email && (
+            <div style={{ fontSize: '12px', color: '#052112', marginTop: '2px' }}>
+               {property.agent.email}
             </div>
-    
+          )}
+          {property.agent.phone && (
+            <div style={{ fontSize: '12px', color: '#052112', marginTop: '2px' }}>
+               {property.agent.phone}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Call button */}
+      {property.agent.phone ? (
+  <a
+    href={`tel:${property.agent.phone}`}
+    style={{
+      display: 'block',
+      width: '100%',
+      background: '#052112',
+      color: '#ffffff',
+      border: 'none',
+      padding: '11px',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      fontSize: '14px',
+      fontWeight: '600',
+      marginBottom: '8px',
+      textAlign: 'center',
+      textDecoration: 'none',
+      boxSizing: 'border-box'
+    }}
+  >
+     Call {property.agent.username.split(' ')[0]}
+  </a>
+) : (
+        <button style={{
+          width: '100%',
+          background: '#9ca3af',
+          color: '#ffffff',
+          border: 'none',
+          padding: '11px',
+          borderRadius: '8px',
+          cursor: 'not-allowed',
+          fontSize: '14px',
+          fontWeight: '600',
+          marginBottom: '8px'
+        }}>
+           No phone number listed
+        </button>
+      )}
+
+      {/* Email button */}
+      
+        <a
+  href={`mailto:${property.agent.email}?subject=Enquiry about ${property.title}&body=Hello ${property.agent.username},%0A%0AI am interested in the property: ${property.title}%0APrice: KES ${property.price.toLocaleString()}%0ALocation: ${property.location}%0A%0APlease get in touch at your earliest convenience.%0A%0AThank you.`}
+  style={{
+    display: 'block',
+    width: '100%',
+    background: 'transparent',
+    color: '#052112',
+    border: '1.5px solid #052112',
+    padding: '11px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '500',
+    textAlign: 'center',
+    textDecoration: 'none',
+    boxSizing: 'border-box'
+  }}
+>
+   Email {property.agent.username.split(' ')[0]}
+</a>
+    </>
+  ) : (
+    /* No agent assigned */
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+        <div style={{ width: '48px', height: '48px', background: '#e5e7eb', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+          
+        </div>
+        <div>
+          <div style={{ fontWeight: '600', color: '#111827' }}>Property Agent</div>
+          <div style={{ fontSize: '13px', color: '#6b7280' }}>Contact details not available</div>
+        </div>
+      </div>
+      <button style={{ width: '100%', background: '#052112', color: '#ffffff', border: 'none', padding: '11px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+        Call Agent
+      </button>
+      <button style={{ width: '100%', background: 'transparent', color: '#052112', border: '1.5px solid #052112', padding: '11px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
+         Send Message
+      </button>
+    </div>
+  )}
+</div>
 
             {/* AI Price */}
             <div style={{ background: 'linear-gradient(135deg, #052112, #0a4a26)', borderRadius: '12px', padding: '20px', color: '#ffffff' }}>

@@ -47,23 +47,40 @@ class Property(db.Model):
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
     images = db.Column(ARRAY(Text))
     ownership_status = db.Column(db.String(20), default='Pending')
+    agent_id         = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
     # Relationship — one property has many interactions
     interactions = db.relationship('Interaction', backref='property', lazy=True)
 
     def to_dict(self):
+        # Fetch agent details if available
+        agent = None
+        if self.agent_id:
+            from models import User
+            agent_user = User.query.get(self.agent_id)
+            if agent_user:
+                agent = {
+                    'user_id':  agent_user.user_id,
+                    'username': agent_user.username,
+                    'email':    agent_user.email,
+                    'phone':    agent_user.phone or '',
+                    'avatar':   agent_user.avatar or ''
+                }
+
         return {
-            'property_id': self.property_id,
-            'title':       self.title,
-            'price':       float(self.price),
-            'location':    self.location,
-            'bedrooms':    self.bedrooms,
-            'size':        float(self.size) if self.size else None,
-            'latitude':    float(self.latitude) if self.latitude else None,
-            'longitude':   float(self.longitude) if self.longitude else None,
-            'description': self.description,
-            'images': self.images or [],
+            'property_id':      self.property_id,
+            'title':            self.title,
+            'price':            float(self.price),
+            'location':         self.location,
+            'bedrooms':         self.bedrooms,
+            'size':             float(self.size) if self.size else None,
+            'latitude':         float(self.latitude) if self.latitude else None,
+            'longitude':        float(self.longitude) if self.longitude else None,
+            'description':      self.description,
+            'images':           getattr(self, 'images', None) or [],
             'ownership_status': self.ownership_status or 'Pending',
-            'created_at':  str(self.created_at)
+            'agent_id':         self.agent_id,
+            'agent':            agent,
+            'created_at':       str(self.created_at)
         }
 
 

@@ -69,20 +69,25 @@ export default function AddPropertyWizard() {
         return
       }
 
-      const res = await fetch('http://127.0.0.1:5000/api/properties', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          location: formData.location,
-          price: parseFloat(formData.price),
-          bedrooms: parseInt(formData.bedrooms),
-          size: parseFloat(formData.size),
-          latitude: lat,
-          longitude: lng,
-          description: formData.description
-        })
-      })
+      // Get logged in user
+const stored = localStorage.getItem('user')
+const user   = stored ? JSON.parse(stored) : null
+
+const res = await fetch('http://127.0.0.1:5000/api/properties', {
+  method:  'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    title:            formData.title,
+    location:         formData.location,
+    price:            parseFloat(formData.price),
+    bedrooms:         parseInt(formData.bedrooms) || 0,
+    size:             parseFloat(formData.size),
+    latitude:         parseFloat(formData.latitude),
+    longitude:        parseFloat(formData.longitude),
+    description:      formData.description,
+    agent_id:         user?.user_id || null
+  })
+})
 
       const data = await res.json()
       if (!res.ok) {

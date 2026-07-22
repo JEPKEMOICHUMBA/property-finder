@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import MapWrapper from '@/components/map/MapWrapper'
 import PropertyCard from '@/components/PropertyCard'
+import MarketTrends from '@/components/MarketTrends'
 interface Property {
   property_id: number
   title: string
@@ -16,8 +16,15 @@ interface Property {
   description: string
   images: string[]
   personalized?: boolean
-  ownership_status?: string
 }
+
+const recentSearches = [
+  'Karen, Nairobi',
+  '3 Bedroom House',
+  'Westlands Apartment',
+  'Land - Thika Road',
+  'Kilimani 2 Bedroom',
+]
 
 const LOCATIONS = [
   'Karen', 'Westlands', 'Kilimani', 'Muthaiga', 'Kasarani',
@@ -26,7 +33,6 @@ const LOCATIONS = [
 ]
 
 export default function Home() {
-  const router = useRouter()
   const [properties, setProperties]                   = useState<Property[]>([])
   const [loading, setLoading]                         = useState(true)
   const [error, setError]                             = useState('')
@@ -45,98 +51,71 @@ export default function Home() {
   const [propType, setPropType]                       = useState('')
   const [sortBy, setSortBy]                           = useState('default')
   const [activeFilters, setActiveFilters]             = useState(0)
-  const [ownershipFilter, setOwnershipFilter] = useState('')
-  const [hasSearched, setHasSearched]         = useState(false)
-  const [recentSearches, setRecentSearches] = useState<string[]>([])
-  const [userRole, setUserRole] = useState<string | null>(null)
+
   const fetchProperties = async (params?: {
-  location?: string
-  min_price?: string
-  max_price?: string
-  bedrooms?: string
-  type?: string
-  ownership_status?: string
-}) => {
-  setLoading(true)
-  setError('')
-  try {
-    const query = new URLSearchParams()
-    if (params?.location)         query.append('location',         params.location)
-    if (params?.min_price)        query.append('min_price',        params.min_price)
-    if (params?.max_price)        query.append('max_price',        params.max_price)
-    if (params?.bedrooms)         query.append('bedrooms',         params.bedrooms)
-    if (params?.type)             query.append('type',             params.type)
-    if (params?.ownership_status) query.append('ownership_status', params.ownership_status)
+    location?: string
+    min_price?: string
+    max_price?: string
+    bedrooms?: string
+    type?: string
+  }) => {
+    setLoading(true)
+    setError('')
+    try {
+      const query = new URLSearchParams()
+      if (params?.location)  query.append('location',  params.location)
+      if (params?.min_price) query.append('min_price', params.min_price)
+      if (params?.max_price) query.append('max_price', params.max_price)
+      if (params?.bedrooms)  query.append('bedrooms',  params.bedrooms)
+      if (params?.type)      query.append('type',      params.type)
 
-    const url = query.toString()
-      ? `http://127.0.0.1:5000/api/properties/search?${query}`
-      : `http://127.0.0.1:5000/api/properties/map`
+      const url = query.toString()
+        ? `http://127.0.0.1:5000/api/properties/search?${query}`
+        : `http://127.0.0.1:5000/api/properties/map`
 
-    const res  = await fetch(url)
-    const data = await res.json()
-    setProperties(data)
-  } catch {
-    setError('Could not load properties. Is Flask running?')
+      const res  = await fetch(url)
+      const data = await res.json()
+      setProperties(data)
+    } catch {
+      setError('Could not load properties. Is Flask running?')
+    }
+    setLoading(false)
   }
-  setLoading(false)
-}
 
   useEffect(() => {
-    const stored = localStorage.getItem('user')
-    if (stored) {
-      try {
-        const user = JSON.parse(stored)
-        setUserRole(user.role || null)
-      } catch {
-        setUserRole(null)
-      }
-    }
+    fetchProperties()
+  //// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleSearch = () => {
-    //save to recent searches
-    if (search || location) {
-    const term = search || location
-    const existing = JSON.parse(localStorage.getItem('recentSearches') || '[]') as string[]
-    const updated  = [term, ...existing.filter(s => s !== term)].slice(0, 5)
-    localStorage.setItem('recentSearches', JSON.stringify(updated))
-    setRecentSearches(updated)
+    let count = 0
+    if (location)  count++
+    if (minPrice)  count++
+    if (maxPrice)  count++
+    if (bedrooms)  count++
+    if (propType)  count++
+    if (search)    count++
+    setActiveFilters(count)
+    fetchProperties({
+      location:  search || location,
+      min_price: minPrice,
+      max_price: maxPrice,
+      bedrooms,
+      type: propType
+    })
   }
 
-  let count = 0
-  if (location)        count++
-  if (minPrice)        count++
-  if (maxPrice)        count++
-  if (bedrooms)        count++
-  if (propType)        count++
-  if (search)          count++
-  if (ownershipFilter) count++
-  setActiveFilters(count)
-  setHasSearched(true)
-
-  fetchProperties({
-    location:         search || location,
-    min_price:        minPrice,
-    max_price:        maxPrice,
-    bedrooms,
-    type:             propType,
-    ownership_status: ownershipFilter
-  })
-}
-
   const handleReset = () => {
-  setSearch('')
-  setLocation('')
-  setMinPrice('')
-  setMaxPrice('')
-  setBedrooms('')
-  setPropType('')
-  setSortBy('default')
-  setOwnershipFilter('')
-  setActiveFilters(0)
-  setHasSearched(false)
-  setProperties([])
-}
+    setSearch('')
+    setLocation('')
+    setMinPrice('')
+    setMaxPrice('')
+    setBedrooms('')
+    setPropType('')
+    setSortBy('default')
+    setActiveFilters(0)
+    fetchProperties()
+  }
 
   const getSortedProperties = () => {
     const list = [...properties]
@@ -186,10 +165,10 @@ export default function Home() {
         color: '#ffffff'
       }}>
         <h2 className="hero-title" style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>
-          Discover where you belong...
+          Find Your Perfect Property in Nairobi
         </h2>
         <p style={{ fontSize: '15px', opacity: 0.8, marginBottom: '28px' }}>
-          Leverage our predictive property intelligent Engine for real-time price predictions and GIS mapping
+          AI-powered search with real-time price predictions and GIS mapping
         </p>
 
         {/* Search bar */}
@@ -288,25 +267,6 @@ export default function Home() {
             <option value="house" style={{ color: '#111' }}>Houses</option>
             <option value="land"  style={{ color: '#111' }}>Land</option>
           </select>
-          {/* Ownership Status Filter */}
-<select
-  value={ownershipFilter}
-  onChange={e => setOwnershipFilter(e.target.value)}
-  style={{
-    padding: '9px 12px',
-    background: 'rgba(255,255,255,0.15)',
-    border: '1px solid rgba(255,255,255,0.3)',
-    color: '#ffffff',
-    borderRadius: '8px',
-    fontSize: '13px',
-    outline: 'none'
-  }}
->
-  <option value=""          style={{ color: '#111' }}>All Ownership</option>
-  <option value="Verified"  style={{ color: '#111' }}>Verified Only</option>
-  <option value="Pending"   style={{ color: '#111' }}> Pending</option>
-  <option value="Disputed"  style={{ color: '#111' }}> Disputed</option>
-</select>
           <button
             onClick={handleSearch}
             style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', color: '#ffffff', padding: '9px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}
@@ -323,27 +283,19 @@ export default function Home() {
           )}
         </div>
 
-        
-          {/* AI Recommendations */}
-        {!showRecommendations ? (
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setShowRecommendations(true)}
-              style={{ background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#ffffff', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-            >
-               Get personalized Recommendations
-            </button>
+        {/* Market Trends Dashboard */}
+<div style={{ maxWidth: '1400px', margin: '24px auto 0', padding: '0 20px' }}>
+  <MarketTrends />
+</div>
 
-            {/* Add Property Button - Only for Agents */}
-            {userRole === 'agent' && (
-              <button
-                onClick={() => router.push('/agent/add-property')}
-                style={{ background: '#ffffff', color: '#052112', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              >
-                 Add Property
-              </button>
-            )}
-          </div>
+        {/* AI Recommendations */}
+        {!showRecommendations ? (
+          <button
+            onClick={() => setShowRecommendations(true)}
+            style={{ background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#ffffff', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+          >
+             Get AI Recommendations
+          </button>
         ) : (
           <div style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '20px', maxWidth: '700px', margin: '0 auto' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '14px' }}> AI Property Recommendations</h3>
@@ -428,7 +380,7 @@ export default function Home() {
               <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '6px' }}>{property.title}</h4>
               <p style={{ fontSize: '16px', fontWeight: '700', color: '#052112', marginBottom: '8px' }}>{formatPrice(property.price)}</p>
               <div style={{ display: 'flex', gap: '10px', fontSize: '12px', color: '#6b7280' }}>
-                {property.bedrooms > 0 && <span> {property.bedrooms} beds</span>}
+                {property.bedrooms > 0 && <span>🛏 {property.bedrooms} beds</span>}
                 <span>{property.location}</span>
               </div>
             </div>
@@ -466,7 +418,7 @@ export default function Home() {
                 )}
               </h3>
               <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>
-                {!hasSearched ? 'Search to see properties' : loading ? 'Loading...' : `${sorted.length} properties found`}
+                {loading ? 'Loading...' : `${sorted.length} properties found`}
               </p>
             </div>
             <div className="toolbar-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -478,7 +430,7 @@ export default function Home() {
                 <option value="beds_desc">Most Bedrooms</option>
               </select>
               <button onClick={() => setShowMap(!showMap)} style={{ background: showMap ? '#052112' : 'transparent', color: showMap ? '#ffffff' : '#052112', border: '1.5px solid #052112', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
-                {showMap ? ' List' : '🗺 Map'}
+                {showMap ? ' List' : 'Map'}
               </button>
               {activeFilters > 0 && (
                 <button onClick={handleReset} style={{ background: 'transparent', color: '#6b7280', border: '1.5px solid #e5e7eb', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
@@ -489,7 +441,6 @@ export default function Home() {
           </div>
 
           {/* Active filter tags */}
-          
           {activeFilters > 0 && (
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
               {(search || location) && <span style={{ background: '#f0fdf4', color: '#052112', border: '1px solid #bbf7d0', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '500' }}> {search || location}</span>}
@@ -511,138 +462,45 @@ export default function Home() {
 
           {/* Grid */}
           {!showMap && (
-  <div className="property-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
-    {!hasSearched ? (
-      /* ── Prompt state — before any search ── */
-      <div style={{
-        gridColumn: '1 / -1',
-        textAlign: 'center',
-        padding: '60px 20px',
-        color: '#6b7280'
-      }}>
-        <div style={{ fontSize: '56px', marginBottom: '16px' }}></div>
-        <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', marginBottom: '8px' }}>
-          Search for Properties
-        </h3>
-        <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '24px', lineHeight: '1.6' }}>
-          Use the search bar above to find properties by location, price, or bedrooms.<br />
-          You can also browse by area using the panel on the right.
-        </p>
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          {['Karen', 'Westlands', 'Kilimani', 'Runda', 'Lavington'].map(area => (
-            <button
-              key={area}
-              onClick={() => {
-                setSearch(area)
-                setLocation(area)
-                setHasSearched(true)
-                fetchProperties({ location: area })
-              }}
-              style={{
-                background: '#f0fdf4',
-                color: '#052112',
-                border: '1.5px solid #bbf7d0',
-                padding: '8px 16px',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                fontSize: '13px',
-                fontWeight: '500'
-              }}
-            >
-               {area}
-            </button>
-          ))}
-        </div>
-      </div>
-    ) : loading ? (
-      /* ── Loading skeletons ── */
-      [...Array(6)].map((_, i) => (
-        <div key={i} style={{ background: '#ffffff', borderRadius: '12px', height: '300px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>
-          Loading...
-        </div>
-      ))
-    ) : sorted.length === 0 ? (
-      /* ── No results ── */
-      <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px', color: '#6b7280' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}></div>
-        <p style={{ fontSize: '18px', fontWeight: '600' }}>No properties found</p>
-        <p style={{ fontSize: '14px', marginTop: '8px' }}>Try adjusting your filters</p>
-        <button
-          onClick={handleReset}
-          style={{ marginTop: '16px', background: '#052112', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' }}
-        >
-          Clear All Filters
-        </button>
-      </div>
-    ) : (
-      /* ── Results ── */
-      sorted.map(property => <PropertyCard key={property.property_id} property={property} />)
-    )}
-  </div>
-)}
+            <div className="property-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
+              {loading ? (
+                [...Array(6)].map((_, i) => (
+                  <div key={i} style={{ background: '#ffffff', borderRadius: '12px', height: '300px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>Loading...</div>
+                ))
+              ) : sorted.length === 0 ? (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px', color: '#6b7280' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}></div>
+                  <p style={{ fontSize: '18px', fontWeight: '600' }}>No properties found</p>
+                  <p style={{ fontSize: '14px', marginTop: '8px' }}>Try adjusting your filters</p>
+                  <button onClick={handleReset} style={{ marginTop: '16px', background: '#052112', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' }}>Clear All Filters</button>
+                </div>
+              ) : (
+                sorted.map(property => <PropertyCard key={property.property_id} property={property} />)
+              )}
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
-        {/* Recent Searches */}
-<div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '18px', marginBottom: '16px' }}>
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>
-      Recent Searches
-    </h4>
-    {recentSearches.length > 0 && (
-      <button
-        onClick={() => {
-          localStorage.removeItem('recentSearches')
-          setRecentSearches([])
-        }}
-        style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '11px' }}
-      >
-        Clear
-      </button>
-    )}
-  </div>
+        <div className="sidebar">
+          {/* Recent Searches */}
+          <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '18px', marginBottom: '16px' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '12px' }}> Recent Searches</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {recentSearches.map((s, i) => (
+                <button key={i} onClick={() => { setSearch(s); handleSearch() }} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '9px 12px', textAlign: 'left', cursor: 'pointer', fontSize: '13px', color: '#374151' }}>
+                   {s}
+                </button>
+              ))}
+            </div>
+          </div>
 
-  {recentSearches.length === 0 ? (
-    <div style={{ textAlign: 'center', padding: '16px 0', color: '#9ca3af', fontSize: '13px' }}>
-      <div style={{ fontSize: '24px', marginBottom: '6px' }}></div>
-Your searches will appear here
-    </div>
-  ) : (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      {recentSearches.map((s, i) => (
-        <button
-          key={i}
-          onClick={() => {
-            setSearch(s)
-            setHasSearched(true)
-            fetchProperties({ location: s })
-          }}
-          style={{
-            background: '#f9fafb',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            padding: '9px 12px',
-            textAlign: 'left',
-            cursor: 'pointer',
-            fontSize: '13px',
-            color: '#374151',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-           {s}
-        </button>
-      ))}
-    </div>
-  )}
-</div>
           {/* Browse by Area */}
           <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '18px', marginBottom: '16px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '12px' }}> Browse by Area</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {LOCATIONS.slice(0, 8).map(loc => (
-                <button key={loc} onClick={() => { setLocation(loc); setSearch(loc); setHasSearched(true); fetchProperties({ location: loc }) }} style={{ background: location === loc ? '#052112' : '#f9fafb', color: location === loc ? '#ffffff' : '#374151', border: `1px solid ${location === loc ? '#052112' : '#e5e7eb'}`, borderRadius: '8px', padding: '9px 12px', textAlign: 'left', cursor: 'pointer', fontSize: '13px', fontWeight: location === loc ? '600' : '400' }}>
+                <button key={loc} onClick={() => { setLocation(loc); setSearch(loc); fetchProperties({ location: loc }) }} style={{ background: location === loc ? '#052112' : '#f9fafb', color: location === loc ? '#ffffff' : '#374151', border: `1px solid ${location === loc ? '#052112' : '#e5e7eb'}`, borderRadius: '8px', padding: '9px 12px', textAlign: 'left', cursor: 'pointer', fontSize: '13px', fontWeight: location === loc ? '600' : '400' }}>
                   {loc}
                 </button>
               ))}
@@ -660,6 +518,6 @@ Your searches will appear here
           </div>
         </div>
       </div>
-   
+    </div>
   )
 }

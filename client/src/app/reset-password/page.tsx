@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function ResetPassword() {
+function ResetPasswordForm() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const token        = searchParams.get('token')
 
-  const [password, setPassword]   = useState('')
-  const [confirm, setConfirm]     = useState('')
-  const [error, setError]         = useState('')
-  const [success, setSuccess]     = useState('')
-  const [loading, setLoading]     = useState(false)
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm]   = useState('')
+  const [error, setError]       = useState('')
+  const [success, setSuccess]   = useState('')
+  const [loading, setLoading]   = useState(false)
 
   useEffect(() => {
     if (!token) {
@@ -38,7 +38,6 @@ export default function ResetPassword() {
     }
 
     setLoading(true)
-
     try {
       const res  = await fetch('http://127.0.0.1:5000/api/reset-password', {
         method:  'POST',
@@ -56,7 +55,6 @@ export default function ResetPassword() {
     } catch {
       setError('Could not connect to server.')
     }
-
     setLoading(false)
   }
 
@@ -108,6 +106,7 @@ export default function ResetPassword() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Minimum 6 characters"
+                autoComplete="new-password"
                 style={inputStyle}
                 onFocus={e => e.target.style.borderColor = '#052112'}
                 onBlur={e => e.target.style.borderColor = '#e5e7eb'}
@@ -123,6 +122,7 @@ export default function ResetPassword() {
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 placeholder="Repeat your new password"
+                autoComplete="new-password"
                 style={inputStyle}
                 onFocus={e => e.target.style.borderColor = '#052112'}
                 onBlur={e => e.target.style.borderColor = '#e5e7eb'}
@@ -141,11 +141,26 @@ export default function ResetPassword() {
         )}
 
         <p style={{ textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>
-          <span onClick={() => router.push('/forgot-password')} style={{ color: '#052112', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}>
+          <span
+            onClick={() => router.push('/forgot-password')}
+            style={{ color: '#052112', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
+          >
             Request a new reset link
           </span>
         </p>
       </div>
     </div>
+  )
+}
+
+export default function ResetPassword() {
+  return (
+    <Suspense fallback={
+      <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
+        Loading...
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }
