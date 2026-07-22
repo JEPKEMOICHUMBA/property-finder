@@ -38,58 +38,81 @@ export default function ImageUpload({ propertyId, existingImages, onUpdate }: Im
     })
   }
 
-  const handleUpload = async () => {
-    if (previews.length === 0) {
-      setError('Please select images first')
+    const handleUpload = async () => {
+  if (previews.length === 0) {
+    setError('Please select images first')
+    return
+  }
+
+  setUploading(true)
+  setError('')
+  setSuccess('')
+
+  try {
+    const payload = JSON.stringify({ images: previews })
+
+    const res = await fetch(
+      `http://127.0.0.1:5000/api/properties/${propertyId}/images`,
+      {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept':        'application/json'
+        },
+        body: payload
+      }
+    )
+
+    const text = await res.text()
+
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch {
+      setError(`Server returned invalid response: ${text.substring(0, 100)}`)
+      setUploading(false)
       return
     }
 
-    setUploading(true)
-    setError('')
-    setSuccess('')
-
-    try {
-      const res = await fetch(
-        `http://127.0.0.1:5000/api/properties/${propertyId}/images`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ images: previews })
-        }
-      )
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error)
-      } else {
-        setSuccess(`${previews.length} image(s) uploaded successfully!`)
-        setPreviews([])
-        onUpdate(data.images)
-        if (fileRef.current) fileRef.current.value = ''
-        setTimeout(() => setSuccess(''), 3000)
-      }
-    } catch {
-      setError('Upload failed. Is Flask running?')
+    if (!res.ok) {
+      setError(data.error || `Server error: ${res.status}`)
+    } else {
+      setSuccess(`${previews.length} image(s) uploaded successfully!`)
+      setPreviews([])
+      onUpdate(data.images)
+      if (fileRef.current) fileRef.current.value = ''
+      setTimeout(() => setSuccess(''), 3000)
     }
-    setUploading(false)
+  } catch (err) {
+    setError(`Upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
   }
 
-  const handleDelete = async (url: string) => {
+  setUploading(false)
+}
+
+      const handleDelete = async (url: string) => {
     try {
       const res = await fetch(
         `http://127.0.0.1:5000/api/properties/${propertyId}/images`,
         {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url })
+          body: JSON.stringify({ url: url })  // ← Changed from 'image_url' to 'url'
         }
       )
+
       const data = await res.json()
-      if (res.ok) {
-        onUpdate(data.images)
+
+      if (!res.ok) {
+        setError(data.error || `Server error: ${res.status}`)
+        return
       }
-    } catch {
-      setError('Delete failed')
+
+      setSuccess('Image deleted successfully!')
+      onUpdate(data.images)
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+      setError(`Delete failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
   }
 

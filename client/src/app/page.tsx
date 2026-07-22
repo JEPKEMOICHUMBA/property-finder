@@ -430,7 +430,7 @@ export default function Home() {
                 <option value="beds_desc">Most Bedrooms</option>
               </select>
               <button onClick={() => setShowMap(!showMap)} style={{ background: showMap ? '#052112' : 'transparent', color: showMap ? '#ffffff' : '#052112', border: '1.5px solid #052112', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
-                {showMap ? ' List' : '🗺 Map'}
+                {showMap ? ' List' : 'Map'}
               </button>
               {activeFilters > 0 && (
                 <button onClick={handleReset} style={{ background: 'transparent', color: '#6b7280', border: '1.5px solid #e5e7eb', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function SignIn() {
   const router = useRouter()
@@ -65,7 +66,7 @@ export default function SignIn() {
             Welcome Back
           </h1>
           <p style={{ fontSize: '14px', color: '#6b7280' }}>
-            Sign in to your Property Finder account
+            Sign in to your account
           </p>
         </div>
 
@@ -99,7 +100,8 @@ export default function SignIn() {
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="john@email.com"
+            placeholder="Enter your email"
+            autoComplete="email"
             style={{
               width: '100%',
               padding: '11px 14px',
@@ -128,10 +130,11 @@ export default function SignIn() {
             Password
           </label>
           <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Enter your password"
+  type="password"
+  value={password}
+  onChange={e => setPassword(e.target.value)}
+  placeholder="Enter your password"
+  autoComplete="current-password"
             style={{
               width: '100%',
               padding: '11px 14px',
@@ -148,9 +151,17 @@ export default function SignIn() {
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
           />
           <div style={{ textAlign: 'right', marginTop: '6px' }}>
-            <a href="#" style={{ fontSize: '13px', color: '#052112', textDecoration: 'none' }}>
-              Forgot password?
-            </a>
+
+           <Link
+  href="/forgot-password"
+  style={{
+    fontSize: '13px',
+    color: '#052112',
+    textDecoration: 'none'
+  }}
+>
+  Forgot password?
+</Link>
           </div>
         </div>
 
